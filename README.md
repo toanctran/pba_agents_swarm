@@ -1,6 +1,6 @@
 # Agency Swarm
 
-[![Framework](https://github.com/toanctran/pba_agents_swarm/blob/main/AI_AGENT_SWARM.png)]
+![Framework](https://github.com/toanctran/pba_agents_swarm/blob/main/AI_AGENT_SWARM.png)
 
 
 
