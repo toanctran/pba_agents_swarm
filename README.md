@@ -108,59 +108,12 @@ organization = Organization([
 Run the demo to see your agents in action!
 
 ```python
-agency.demo_gradio(height=900)
+organization.demo_gradio(height=900)
 ```
 
 or get completion from the agency:
 
 ```python
-agency.get_completion("Please create a new website for our client.")
+organization.get_completion("Please create a new website for our client.")
 ```
 
-## Creating Agent Templates Locally (CLI)
-
-This CLI command simplifies the process of creating a structured environment for each agent.
-
-#### **Command Syntax:**
-
-```bash
-agency-swarm create-agent-template --name "AgentName" --description "Agent Description" [--path "/path/to/directory"] [--use_txt]
-```
-
-### Folder Structure
-
-When you run the `create-agent-template` command, it creates the following folder structure for your agent:
-
-```
-/your-specified-path/
-│
-├── agency_manifesto.md or .txt # Agency's guiding principles (created if not exists)
-└── agent_name/                 # Directory for the specific agent
-    ├── agent_name.py           # The main agent class file
-    ├── __init__.py             # Initializes the agent folder as a Python package
-    ├── instructions.md or .txt # Instruction document for the agent
-    ├── tools.py                # Tools specific to the agent
-    ├── files/                  # Directory for additional resources
-```
-
-This structure ensures that each agent has its dedicated space with all necessary files to start working on its specific tasks. The `tools.py` can be customized to include tools and functionalities specific to the agent's role.
-
-## Future Enhancements
-
-- Asynchronous communication and task handling.
-- Creation of agencies that can autonomously create other agencies.
-- Inter-agency communication for a self-expanding system.
-
-## Contributing
-
-We welcome contributions to Agency Swarm! Please feel free to submit issues, pull requests, and suggestions to our GitHub repository.
-
-## License
-
-Agency Swarm is open-source and licensed under [MIT](https://opensource.org/licenses/MIT).
-
-
-
-## Need Help?
-
-If you require assistance in creating custom agent swarms or have any specific queries related to Agency Swarm, feel free to reach out through my website: [vrsen.ai](https://vrsen.ai)
