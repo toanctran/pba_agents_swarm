@@ -217,7 +217,9 @@ class Organization:
             def user(user_message, history):
                 if not user_message.startswith("Uploaded files: "):
                     user_message = "👤 User: " + user_message.strip()
-                return "", history + [[user_message, None]]
+
+                history.append([user_message, None])
+                return history
 
             def bot(history):
                 # Replace this with your actual chatbot logic
@@ -236,15 +238,15 @@ class Organization:
 
             def upload_files(file_info, history):
                 drive = google_drive_service
-                links = []
+           
                 for file_path in file_info:
                     uploaded_file = upload_file_to_drive(drive, file_path)
-                    links.append(uploaded_file['link'])
+                    link = uploaded_file['link']
 
-                # Create a message with all the links and pass it as a user message
-                link_message = '👤 User: Uploaded files: ' + ', '.join(links)
-                history.append([link_message, None])
-                return history
+                    link_message = f"{link}"
+                    history = user(link_message, history)
+                
+                return "", history
 
 
             msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
@@ -252,7 +254,7 @@ class Organization:
             )
 
              # Handle file upload
-            upload_button.change(upload_files, inputs=[upload_button, chatbot], outputs=chatbot)
+            upload_button.change(upload_files, upload_button, chatbot, queue=True)
 
 
             demo.queue()
