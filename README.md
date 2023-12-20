@@ -16,14 +16,14 @@ pip install git+https://github.com/toanctran/pba_agents_swarm
 1. **Set Your OpenAI Key**:
 
 ```python
-from orangization_swarm import set_openai_key
+from organization_swarm import set_openai_key
 set_openai_key("YOUR_API_KEY")
 ```
 
 2. **Create Tools**:
 Define your custom tools with [Instructor](https://github.com/jxnl/instructor):
 ```python
-from orangization_swarm.tools import BaseTool
+from organization_swarm.tools import BaseTool
 from pydantic import Field
 
 class MyCustomTool(BaseTool):
