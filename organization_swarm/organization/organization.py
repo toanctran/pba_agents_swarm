@@ -188,7 +188,7 @@ class Organization:
         # Launch the demo
         demo.launch()
 
-    def demo_gradio_google_colabs(self, height=600, file_save_path='/content'):
+    def demo_gradio_google_colabs(self, height=600, google_drive_service):
         """
         Launches a Gradio-based demo interface for the agency chatbot.
 
@@ -199,29 +199,25 @@ class Organization:
         This method sets up and runs a Gradio interface, allowing users to interact with the agency's chatbot. It includes a text input and a file upload component for the user's messages and files, and a chatbot interface for displaying the conversation. The method handles user input, file uploads, and chatbot responses, updating the interface dynamically.
         """
         import gradio as gr
-        if not os.path.exists(file_save_path):
-            return f"Error: The specified file save path '{file_save_path}' does not exist."
+       
+        def upload_file_to_drive(drive, file_path):
+            file_name = os.path.basename(file_path)
+            # Create and upload the file to Google Drive
+            uploaded_file = drive.CreateFile({'title': file_name, 'parents':[{'id':'1pSoXRHRbuVBRlaiy9Q_GJCc3GY9I6CXu'}]})
+            uploaded_file.SetContentFile(file_path)
+            uploaded_file.Upload()
+            link = f"https://drive.google.com/file/d/{uploaded_file['id']}"
+            return {"link": link}
 
         with gr.Blocks() as demo:
             chatbot = gr.Chatbot(height=height)
             msg = gr.Textbox()
-            file_upload = gr.File(label="Upload File")
+            upload_button = gr.File(label="Upload a File", file_count="multiple", file_types=["image", "video", "txt", "pdf", "doc", "docx", "xls", "xlsx", "md", "png", "jpg"])
 
-            def user(user_message, uploaded_file, history):
-                user_message = "👤 User: " + user_message.strip()
-                updated_history = history + [[user_message, None]]
-
-                if uploaded_file is not None:
-                    file_path = os.path.join(file_save_path, uploaded_file.name)
-                    try:
-                        with open(file_path, 'wb') as f:
-                            f.write(uploaded_file.read())
-                        file_message = f"🗃️ File saved at: {file_path}"
-                    except Exception as e:
-                        file_message = f"Error saving file: {e}"
-                    updated_history.append([None, file_message])
-
-                return "", updated_history
+            def user(user_message, history):
+                if not user_message.startswith("Uploaded files: "):
+                    user_message = "👤 User: " + user_message.strip()
+                return "", history + [[user_message, None]]
 
             def bot(history):
                 # Replace this with your actual chatbot logic
@@ -238,9 +234,24 @@ class Organization:
                 except StopIteration:
                     pass
 
-            msg.submit(user, [msg, file_upload, chatbot], [msg, file_upload, chatbot], queue=False).then(
+            def upload_files(file_info):
+                drive = google_drive_service
+                links = []
+                for file_path in file_info:
+                    uploaded_file = upload_file_to_drive(drive, file_path)
+                    links.append(uploaded_file['link'])
+
+                # Create a message with all the links and pass it as a user message
+                link_message = 'Uploaded files: ' + ', '.join(links)
+                return user(link_message, chatbot.get_value())
+
+
+            msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
                 bot, chatbot, chatbot
             )
+
+             # Handle file upload
+            upload_button.change(upload_files, upload_button, chatbot)
 
             demo.queue()
 
