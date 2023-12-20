@@ -255,7 +255,7 @@ class Organization:
 
             demo.queue()
 
-        demo.launch()
+        demo.launch(debug=True)
 
 
 
