@@ -188,7 +188,7 @@ class Organization:
         # Launch the demo
         demo.launch()
 
-    def demo_gradio_google_colabs(self, height=600, google_drive_service):
+    def demo_gradio_google_colabs(self, height, google_drive_service):
         """
         Launches a Gradio-based demo interface for the agency chatbot.
 
