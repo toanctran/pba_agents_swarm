@@ -117,28 +117,47 @@ class Organization:
         # Launch the demo
         demo.launch()
 
-    def demo_gradio_2(self, height=600):
+
+    def demo_gradio_2(self, height=600, file_save_path=os.path.join(os.getcwd(), "uploadFiles")):
         """
         Launches a Gradio-based demo interface for the agency chatbot.
 
         Parameters:
         height (int, optional): The height of the chatbot widget in the Gradio interface. Default is 600.
+        file_save_path (str, optional): The path where uploaded files will be saved.
 
-        This method sets up and runs a Gradio interface, allowing users to interact with the agency's chatbot. It includes a text input for the user's messages and a chatbot interface for displaying the conversation. The method handles user input and chatbot responses, updating the interface dynamically.
+        This method sets up and runs a Gradio interface, allowing users to interact with the agency's chatbot. It includes a text input and a file upload component for the user's messages and files, and a chatbot interface for displaying the conversation. The method handles user input, file uploads, and chatbot responses, updating the interface dynamically.
         """
         try:
             import gradio as gr
         except ImportError:
             raise Exception("Please install gradio: pip install gradio")
 
+        # Check if file_save_path exists, if not, create it
+        if not os.path.exists(file_save_path):
+            os.makedirs(file_save_path)
+
         with gr.Blocks() as demo:
             chatbot = gr.Chatbot(height=height)
             msg = gr.Textbox()
+            file_upload = gr.File(label="Upload File")
 
-            def user(user_message, history):
+            def user(user_message, uploaded_file, history):
                 # Append the user message with a placeholder for bot response
                 user_message = "👤 User: " + user_message.strip()
-                return "", history + [[user_message, None]]
+                updated_history = history + [[user_message, None]]
+
+                # Handle file upload
+                if uploaded_file is not None:
+                    # Save the file
+                    file_path = os.path.join(file_save_path, uploaded_file.name)
+                    with open(file_path, 'wb') as f:
+                        f.write(uploaded_file.read())
+                    # Inform the bot of the file's location
+                    file_message = f"🗃️ File saved at: {file_path}"
+                    updated_history.append([None, file_message])
+
+                return "", updated_history
 
             def bot(history):
                 # Replace this with your actual chatbot logic
@@ -149,18 +168,17 @@ class Organization:
                     for bot_message in gen:
                         if bot_message.sender_name.lower() == "user":
                             continue
-                        
-                        if bot_message.receiver_name.lower() == "user":
-                            message = bot_message.get_sender_emoji() + " " + bot_message.get_formatted_content()
 
-                            history.append((None, message))
-                            yield history
+                        message = bot_message.get_sender_emoji() + " " + bot_message.get_formatted_content()
+
+                        history.append((None, message))
+                        yield history
                 except StopIteration:
                     # Handle the end of the conversation if necessary
                     pass
 
             # Chain the events
-            msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
+            msg.submit(user, [msg, file_upload, chatbot], [msg, file_upload, chatbot], queue=False).then(
                 bot, chatbot, chatbot
             )
 
@@ -169,6 +187,7 @@ class Organization:
 
         # Launch the demo
         demo.launch()
+
 
     def run_demo(self):
         """
