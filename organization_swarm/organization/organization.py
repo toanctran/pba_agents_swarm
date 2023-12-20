@@ -207,7 +207,7 @@ class Organization:
             uploaded_file.SetContentFile(file_path)
             uploaded_file.Upload()
             link = f"https://drive.google.com/file/d/{uploaded_file['id']}"
-            return {"link": link}
+            return {"id": uploaded_file['id'], "link": link}
 
         with gr.Blocks() as demo:
             chatbot = gr.Chatbot(height=height)
