@@ -234,7 +234,7 @@ class Organization:
                 except StopIteration:
                     pass
 
-            def upload_files(file_info):
+            def upload_files(file_info, history):
                 drive = google_drive_service
                 links = []
                 for file_path in file_info:
@@ -242,8 +242,9 @@ class Organization:
                     links.append(uploaded_file['link'])
 
                 # Create a message with all the links and pass it as a user message
-                link_message = 'Uploaded files: ' + ', '.join(links)
-                return user(link_message, chatbot.get_value())
+                link_message = '👤 User: Uploaded files: ' + ', '.join(links)
+                history.append([link_message, None])
+                return history
 
 
             msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
@@ -251,7 +252,8 @@ class Organization:
             )
 
              # Handle file upload
-            upload_button.change(upload_files, upload_button, chatbot)
+            upload_button.change(upload_files, inputs=[upload_button, chatbot], outputs=chatbot)
+
 
             demo.queue()
 
