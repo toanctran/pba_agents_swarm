@@ -220,6 +220,11 @@ class Organization:
 
                 history.append([user_message, None])
                 return history
+            
+            # def user(user_message, history):
+            #     # Append the user message with a placeholder for bot response
+            #     user_message = "👤 User: " + user_message.strip()
+            #     return "", history + [[user_message, None]]
 
             def bot(history):
                 # Replace this with your actual chatbot logic
@@ -236,28 +241,32 @@ class Organization:
                 except StopIteration:
                     pass
 
-            def upload_files(file_info, history):
+            def upload_files(user_message, file_info, history):
                 drive = google_drive_service
-           
+
+                # Add the user's message to the history
+                if user_message:
+                    history = user(user_message, history)
+
+                # Handle file uploads
                 for file_path in file_info:
                     uploaded_file = upload_file_to_drive(drive, file_path)
                     link = uploaded_file['link']
 
-                    link_message = f"{link}"
+                    link_message = f"Uploaded files: {link}"
                     history = user(link_message, history)
                 
                 return "", history
 
 
-            msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-                bot, chatbot, chatbot
-            )
+            msg.submit(upload_files, [msg, upload_button, chatbot], [msg, chatbot], queue=False).then(
+            bot, chatbot, chatbot
+        )
 
-             # Handle file upload
-            upload_button.change(upload_files, upload_button, chatbot, queue=True)
-
+            upload_button.change(upload_files, [msg, upload_button, chatbot], [msg, chatbot], queue=True)
 
             demo.queue()
+
 
         demo.launch(debug=True)
 
