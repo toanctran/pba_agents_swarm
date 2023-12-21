@@ -115,7 +115,7 @@ class Organization:
             demo.queue()
 
         # Launch the demo
-        demo.launch()
+        demo.launch(debug=True)
 
 
     def demo_gradio_2(self, height=600, file_save_path=os.path.join(os.getcwd(), "uploadFiles")):
