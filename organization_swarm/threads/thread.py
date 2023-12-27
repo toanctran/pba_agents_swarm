@@ -9,7 +9,7 @@ from organization_swarm.util.oai import get_openai_client
 
 
 class Thread:
-    id: str
+    id: str = None
     thread = None
     run = None
 
