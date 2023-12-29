@@ -7,4 +7,3 @@ rich==13.7.0
 chromadb==0.4.14
 tiktoken==0.4.0
 colored
-termcolor==2.2.0
