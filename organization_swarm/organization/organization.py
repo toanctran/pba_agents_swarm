@@ -423,7 +423,7 @@ class Organization:
         This method opens the file located at the given path, reads its contents, and stores these contents in the 'shared_instructions' attribute of the agency. This is used to provide common guidelines or instructions to all agents within the agency.
         """
         path = path
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding='utf-8') as f:
             self.shared_instructions = f.read()
 
     def plot_organization_chart(self):
