@@ -20,7 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
 ]
 urls = {
-    "Homepage": "https://github.com/toanctran/pba_agents_swarm"
+    "Homepage": "https://github.com/toanctran/pba_agents_swarm",
 }
 
 [project.scripts]
@@ -28,9 +28,6 @@ agency-swarm = "organization_swarm.cli:main"
 
 [project.dependencies]
 # Your dependencies go here, you can convert them from requirements.txt
-# For example:
-# "requests",
-# "numpy",
 openai = "1.5.0"
 instructor = "0.4.5"
 deepdiff = "6.7.1"
