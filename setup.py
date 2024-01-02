@@ -9,7 +9,7 @@ setup(
     version='0.1.1',
     author='TOAN TRAN',
     author_email='chitoantran@gmail.com',
-    description='Replace your own agency with an agent swarm.',
+    description='Replace your own organization with an agent swarm.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/toanctran/pba_agents_swarm',

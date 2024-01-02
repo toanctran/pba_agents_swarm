@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pba-agents-swarm"
 version = "0.1.1"
 authors = [{name = "TOAN TRAN", email = "chitoantran@gmail.com"}]
-description = "Replace your own agency with an agent swarm."
+description = "Replace your own organization with an agent swarm."
 readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = [
