@@ -20,12 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
 ]
 urls = {"Homepage" = "https://github.com/toanctran/pba_agents_swarm"}
-
-[project.scripts]
-agency-swarm = "organization_swarm.cli:main"
-
-[project.dependencies]
-# Your dependencies go here, you can convert them from requirements.txt
 dependencies = [
     "openai==1.5.0",
     "instructor==0.4.5",
@@ -37,6 +31,9 @@ dependencies = [
     "tiktoken==0.4.0",
     "colored",
 ]
+
+[project.scripts]
+agency-swarm = "organization_swarm.cli:main"
 
 [project.optional-dependencies]
 # Define any optional dependencies (extras_require in setup.py) here
