@@ -18,7 +18,7 @@ class Thread:
         self.agent = agent
         self.recipient_agent = recipient_agent
         self.client = get_openai_client()
-        self.history_file_path = os.path.join(os.getcwd(),"thread_history.json" )
+        self.history_file_path = os.path.join("./","thread_history.json" )
 
     def save_thread_history(self):
         """
