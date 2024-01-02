@@ -27,7 +27,7 @@ setup(
         'Programming Language :: Python :: 3.9',
     ],
     entry_points = {
-        'console_scripts': ['agency-swarm=agency_swarm.cli:main'],
+        'console_scripts': ['organization-swarm=organization_swarm.cli:main'],
     },
     python_requires='>=3.7',  # Specify the Python version requirements
 )

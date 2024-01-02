@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=40.6.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pba-agents-swarm"
+version = "0.1.1"
+authors = [{name = "TOAN TRAN", email = "chitoantran@gmail.com"}]
+description = "Replace your own agency with an agent swarm."
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+]
+urls = {
+    "Homepage": "https://github.com/toanctran/pba_agents_swarm"
+}
+
+[project.scripts]
+agency-swarm = "organization_swarm.cli:main"
+
+[project.dependencies]
+# Your dependencies go here, you can convert them from requirements.txt
+# For example:
+# "requests",
+# "numpy",
+openai = "1.5.0"
+instructor = "0.4.5"
+deepdiff = "6.7.1"
+termcolor = "2.3.0"
+python-dotenv = "1.0.0"
+rich = "13.7.0"
+chromadb = "0.4.14"
+tiktoken = "0.4.0"
+colored = "*"
+
+
+[project.optional-dependencies]
+# Define any optional dependencies (extras_require in setup.py) here
+# For example:
+# dev = ["pytest", "flake8"]
+
+[project.urls]
+# If you have other URLs like a documentation site, you can specify them here
+# For example:
+# "Documentation": "https://link-to-documentation"
+
+[project.python-requires]
+python = ">=3.7"
