@@ -105,6 +105,7 @@ class Organization:
                         yield history
                 except StopIteration:
                     # Handle the end of the conversation if necessary
+                    self.main_thread.save_thread_history()
                     pass
 
             # Chain the events
@@ -141,7 +142,7 @@ class Organization:
         with gr.Blocks() as demo:
             chatbot = gr.Chatbot(height=height)
             msg = gr.Textbox()
-            file_upload = gr.File(label="Upload File")
+            file_upload = gr.File(label="Upload a File", file_count="multiple", file_types=["image", "video", "txt", "pdf", "doc", "docx", "xls", "xlsx", "md", "png", "jpg"])
 
             def user(user_message, uploaded_file, history):
                 # Append the user message with a placeholder for bot response
@@ -176,6 +177,7 @@ class Organization:
                         yield history
                 except StopIteration:
                     # Handle the end of the conversation if necessary
+                    self.main_thread.save_thread_history()
                     pass
 
             # Chain the events
@@ -189,7 +191,7 @@ class Organization:
         # Launch the demo
         demo.launch()
 
-    def demo_gradio_google_colabs(self, height, google_drive_service):
+    def demo_gradio_upload_file_to_google_drive(self, height, google_drive_service):
         """
         Launches a Gradio-based demo interface for the agency chatbot.
 

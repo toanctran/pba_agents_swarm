@@ -1,7 +1,8 @@
 import inspect
 import time
 from typing import Literal
-
+import json
+import os
 from organization_swarm.agents import Agent
 from organization_swarm.messages import MessageOutput
 from organization_swarm.user import User
@@ -17,6 +18,45 @@ class Thread:
         self.agent = agent
         self.recipient_agent = recipient_agent
         self.client = get_openai_client()
+        history_file_path = "thread_history.json"
+
+    def save_thread_history(self):
+        """
+        Saves the current thread history to a file.
+        """
+        history = {
+            "id": self.id,
+            "messages": self.get_thread_messages()
+        }
+
+        if os.path.exists(self.history_file_path):
+            with open(self.history_file_path, "r+") as file:
+                data = json.load(file)
+                data[self.id] = history
+                file.seek(0)
+                json.dump(data, file, indent=4)
+        else:
+            with open(self.history_file_path, "w") as file:
+                json.dump({self.id: history}, file, indent=4)
+
+    def retrieve_thread_history(self, thread_id):
+        """
+        Retrieves the history of a specified thread ID.
+        """
+        if os.path.exists(self.history_file_path):
+            with open(self.history_file_path, "r") as file:
+                data = json.load(file)
+                return data.get(thread_id)
+        return None
+    
+
+    def get_thread_messages(self):
+        """
+        Retrieves all messages from the current thread.
+        """
+        messages = self.client.beta.threads.messages.list(thread_id=self.id)
+        return [{"role": msg.role, "content": msg.content, "file_ids": msg.file_ids} for msg in messages.data]
+
 
     def get_completion(self, message: str, message_files=None, yield_messages=True):
         if not self.thread:
