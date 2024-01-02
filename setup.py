@@ -6,7 +6,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='pba-agents-swarm',
-    version='0.1.0',
+    version='0.1.1',
     author='TOAN TRAN',
     author_email='chitoantran@gmail.com',
     description='Replace your own agency with an agent swarm.',
