@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pba-agents-swarm"
+requires-python = ">=3.7"
 version = "0.1.1"
 authors = [{name = "TOAN TRAN", email = "chitoantran@gmail.com"}]
 description = "Replace your own organization with an agent swarm."
@@ -39,7 +40,3 @@ agency-swarm = "organization_swarm.cli:main"
 # Define any optional dependencies (extras_require in setup.py) here
 # For example:
 # dev = ["pytest", "flake8"]
-
-
-[project.python-requires]
-python = ">=3.7"
