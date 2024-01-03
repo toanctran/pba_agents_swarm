@@ -1,8 +1,17 @@
 import inspect
 import os
+import sys
 import uuid
 from enum import Enum
 from typing import List
+import time
+import networkx as nx
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import matplotlib
+matplotlib.use('Agg')
+from PIL import Image
+import threading
 
 from pydantic import Field, field_validator
 from rich.console import Console
@@ -27,6 +36,7 @@ class Organization:
         self.ceo = None
         self.agents = []
         self.agents_and_threads = {}
+        self.communication_log = [] 
 
         if os.path.isfile(os.path.join(self.get_class_folder_path(), shared_instructions)):
             self._read_instructions(os.path.join(self.get_class_folder_path(), shared_instructions))
@@ -39,9 +49,49 @@ class Organization:
         self._create_send_message_tools()
         self._init_agents()
         self._init_threads()
-
         self.user = User()
         self.main_thread = Thread(self.user, self.ceo)
+
+    def update_communication_log(self, sender, recipient):
+        """
+        Updates the communication log with the latest communication details.
+        """
+        self.communication_log.append((sender, recipient))
+        # Limit the size of the log to avoid old communications cluttering the visualization
+        self.communication_log = self.communication_log[-10:]
+
+    def generate_communication_graph(self):
+        """
+        Generates a graph image representing the current communication state.
+        """
+        G = nx.DiGraph()
+
+        # Disable interactive mode and clear the plot to avoid memory issues
+        plt.ioff()
+        plt.clf()
+
+        # Add nodes and edges (this will depend on your actual agency structure)
+        for agent in self.agents:
+            G.add_node(agent.name)
+        for log in self.communication_log:
+            G.add_edge(*log)
+
+        # Draw the graph
+        fig, ax = plt.subplots(figsize=(6, 4))
+        pos = nx.spring_layout(G)
+        nx.draw(G, pos, with_labels=True, ax=ax)
+
+        # Save to a temporary file
+        canvas = FigureCanvas(fig)
+        canvas.draw()
+        image = Image.frombytes('RGB', canvas.get_width_height(), canvas.tostring_rgb())
+        image_path = "temp_graph.png"
+        image.save(image_path)
+        plt.close(fig)
+
+        return image_path
+    
+    
 
     def get_completion(self, message: str, message_files=None, yield_messages=True):
         """
@@ -75,18 +125,44 @@ class Organization:
 
         This method sets up and runs a Gradio interface, allowing users to interact with the agency's chatbot. It includes a text input for the user's messages and a chatbot interface for displaying the conversation. The method handles user input and chatbot responses, updating the interface dynamically.
         """
+
+        def update_graph_image():
+            """
+            This function updates the graph_image component with the latest graph.
+            It is intended to be run in a separate thread.
+            """
+            while True:
+                # Assuming generate_communication_graph saves the image as 'temp_graph.png'
+                self.generate_communication_graph()
+                time.sleep(1)  # Update every second
+                # Update the Gradio image component with the new graph image
+                with open('temp_graph.png', 'rb') as image_file:
+                    image = Image.open(image_file)
+                    image.load()  # Load the image data into memory
+                    return image
+
+                
         try:
             import gradio as gr
         except ImportError:
             raise Exception("Please install gradio: pip install gradio")
+        
+        def save_to_file(message):
+            with open("chat_history.txt", "a", encoding="utf-8") as file:
+                file.write(message + "\n")
 
         with gr.Blocks() as demo:
-            chatbot = gr.Chatbot(height=height)
-            msg = gr.Textbox()
+            with gr.Row():
+                with gr.Column():
+                    graph_image = gr.Image()  # Image component for the graph
+                with gr.Column():
+                    chatbot = gr.Chatbot(height=height)
+                    msg = gr.Textbox()
 
             def user(user_message, history):
                 # Append the user message with a placeholder for bot response
                 user_message = "👤 User: " + user_message.strip()
+                save_to_file(user_message)
                 return "", history + [[user_message, None]]
 
             def bot(history):
@@ -98,20 +174,23 @@ class Organization:
                     for bot_message in gen:
                         if bot_message.sender_name.lower() == "user":
                             continue
-
+                        if not bot_message.msg_type == "function" and not bot_message.msg_type == "function_output":
+                            self.update_communication_log(sender=bot_message.sender_name, recipient=bot_message.receiver_name)
                         message = bot_message.get_sender_emoji() + " " + bot_message.get_formatted_content()
-
+                        save_to_file(message)
                         history.append((None, message))
                         yield history
                 except StopIteration:
                     # Handle the end of the conversation if necessary
-                    self.main_thread.save_thread_history()
                     pass
-
+            
             # Chain the events
             msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
                 bot, chatbot, chatbot
             )
+
+            demo.load(fn=update_graph_image, outputs=graph_image, show_progress=False, every=1)
+
 
             # Enable queuing for streaming intermediate outputs
             demo.queue()
@@ -429,7 +508,36 @@ class Organization:
             self.shared_instructions = f.read()
 
     def plot_organization_chart(self):
-        pass
+        """
+        Plots a visual representation of the organization's structure and hierarchy.
+
+        This method creates a graph representation of the organization, showing agents and their connections. It uses networkx for graph creation and matplotlib for plotting.
+        """
+        # Create a directed graph
+        G = nx.DiGraph()
+
+        # Add nodes (agents) to the graph
+        for agent in self.agents:
+            G.add_node(agent.name, label=agent.name)
+
+        # Add edges (relationships) to the graph
+        for agent_name, threads in self.agents_and_threads.items():
+            for recipient_name in threads:
+                G.add_edge(agent_name, recipient_name)
+
+        # Generate positions for each node
+        pos = nx.spring_layout(G)
+
+        # Draw the nodes and edges
+        plt.figure(figsize=(10, 8))
+        nx.draw(G, pos, with_labels=True, node_color='skyblue', edge_color='black', linewidths=1, font_size=10, node_size=2000)
+
+        # # Show the plot
+        # plt.show()
+        main_script_path = sys.argv[0]
+        root_directory = os.path.dirname(main_script_path)
+        plt.savefig(os.path.join(root_directory, "organization_chart.png"), format="png")
+        plt.close()
 
     def _create_send_message_tools(self):
         """

@@ -7,7 +7,7 @@ from organization_swarm.agents import Agent
 from organization_swarm.messages import MessageOutput
 from organization_swarm.user import User
 from organization_swarm.util.oai import get_openai_client
-
+import sys
 
 class Thread:
     id: str = None
@@ -18,44 +18,17 @@ class Thread:
         self.agent = agent
         self.recipient_agent = recipient_agent
         self.client = get_openai_client()
-        self.history_file_path = os.path.join("./","thread_history.json" )
+        self.chat_history = []
 
-    def save_thread_history(self):
+    def save_thread_history(self, thread_id):
         """
         Saves the current thread history to a file.
         """
-        history = {
-            "id": self.id,
-            "messages": self.get_thread_messages()
-        }
-
-        if os.path.exists(self.history_file_path):
-            with open(self.history_file_path, "r+") as file:
-                data = json.load(file)
-                data[self.id] = history
-                file.seek(0)
-                json.dump(data, file, indent=4)
-        else:
-            with open(self.history_file_path, "w") as file:
-                json.dump({self.id: history}, file, indent=4)
-
-    def retrieve_thread_history(self, thread_id):
-        """
-        Retrieves the history of a specified thread ID.
-        """
-        if os.path.exists(self.history_file_path):
-            with open(self.history_file_path, "r") as file:
-                data = json.load(file)
-                return data.get(thread_id)
-        return None
-    
-
-    def get_thread_messages(self):
-        """
-        Retrieves all messages from the current thread.
-        """
-        messages = self.client.beta.threads.messages.list(thread_id=self.id)
-        return [{"role": msg.role, "content": msg.content, "file_ids": msg.file_ids} for msg in messages.data]
+        main_script_path = sys.argv[0]
+        root_directory = os.path.dirname(main_script_path)
+        file_path = os.path.join(root_directory,f'{thread_id}.json')  # File name based on thread ID
+        with open(file_path, 'w') as file:
+            json.dump(self.chat_history, file, indent=4)
 
 
     def get_completion(self, message: str, message_files=None, yield_messages=True):
@@ -78,6 +51,8 @@ class Thread:
             content=message,
             file_ids=message_files if message_files else [],
         )
+
+        # self.chat_history.append({'sender': sender_name, 'message': message})
 
         if yield_messages:
             yield MessageOutput("text", self.agent.name, self.recipient_agent.name, message)
@@ -119,6 +94,7 @@ class Thread:
                             yield MessageOutput("function_output", tool_call.function.name, self.recipient_agent.name, output)
 
                     tool_outputs.append({"tool_call_id": tool_call.id, "output": str(output)})
+                    self.chat_history.append({'sender': self.recipient_agent.name, 'tool_outputs': tool_outputs})
 
                 # submit tool outputs
                 self.run = self.client.beta.threads.runs.submit_tool_outputs(
@@ -128,6 +104,7 @@ class Thread:
                 )
             # error
             elif self.run.status == "failed":
+                self.chat_history.append({'sender': self.recipient_agent.name, 'last_run_error': self.run.last_error})
                 raise Exception("Run Failed. Error: ", self.run.last_error)
             # return assistant message
             else:
@@ -135,10 +112,10 @@ class Thread:
                     thread_id=self.id
                 )
                 message = messages.data[0].content[0].text.value
-
+                self.chat_history.append({'sender': self.recipient_agent.name, 'message':message})
                 if yield_messages:
                     yield MessageOutput("text", self.recipient_agent.name, self.agent.name, message)
-
+                self.save_thread_history(thread_id=self.id)
                 return message
 
     def _execute_tool(self, tool_call):
