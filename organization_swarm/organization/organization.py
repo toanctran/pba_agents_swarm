@@ -147,9 +147,13 @@ class Organization:
         except ImportError:
             raise Exception("Please install gradio: pip install gradio")
         
+        
         def save_to_file(message):
             with open("chat_history.txt", "a", encoding="utf-8") as file:
                 file.write(message + "\n")
+
+
+            
 
         with gr.Blocks() as demo:
             with gr.Row():
@@ -157,6 +161,12 @@ class Organization:
                     graph_image = gr.Image()  # Image component for the graph
                 with gr.Column():
                     chatbot = gr.Chatbot(height=height)
+                    gr.Markdown("### Please click a button to start the conversation:")
+                    with gr.Row():
+                        # Buttons for conversation starters
+                        button1 = gr.Button(value="Create the Personal Branding Strategy for my client [client_name]")
+                        button2 = gr.Button(value="Ask for Help")
+                        button_state = gr.State(False)
                     msg = gr.Textbox()
 
             def user(user_message, history):
@@ -168,7 +178,6 @@ class Organization:
             def bot(history):
                 # Replace this with your actual chatbot logic
                 gen = self.get_completion(message=history[-1][0])
-
                 try:
                     # Yield each message from the generator
                     for bot_message in gen:
@@ -183,7 +192,18 @@ class Organization:
                 except StopIteration:
                     # Handle the end of the conversation if necessary
                     pass
-            
+
+            def on_button_click(button, state):
+                button_text = button
+                msg.value = button_text
+                msg.visible = True
+                return button_text, gr.update(visible=state)
+   
+
+                        # Connect the on_button_click function to the buttons using the click event
+            button1.click(on_button_click, [button1, button_state], [msg, button1])
+            button2.click(on_button_click, [button2, button_state], [msg, button2])
+
             # Chain the events
             msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
                 bot, chatbot, chatbot
