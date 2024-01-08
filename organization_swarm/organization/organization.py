@@ -116,7 +116,7 @@ class Organization:
 
         return gen
 
-    def demo_gradio(self, height=600):
+    def demo_gradio(self, button_values, height=600):
         """
         Launches a Gradio-based demo interface for the agency chatbot.
 
@@ -164,8 +164,7 @@ class Organization:
                     gr.Markdown("### Please click a button to start the conversation:")
                     with gr.Row():
                         # Buttons for conversation starters
-                        button1 = gr.Button(value="Create the Personal Branding Strategy for my client [client_name]")
-                        button2 = gr.Button(value="Ask for Help")
+                        buttons = [gr.Button(value=value) for value in button_values]
                         button_state = gr.State(False)
                     msg = gr.Textbox()
 
@@ -198,11 +197,13 @@ class Organization:
                 msg.value = button_text
                 msg.visible = True
                 return button_text, gr.update(visible=state)
-   
 
-                        # Connect the on_button_click function to the buttons using the click event
-            button1.click(on_button_click, [button1, button_state], [msg, button1])
-            button2.click(on_button_click, [button2, button_state], [msg, button2])
+            # Connect the on_button_click function to the dynamically created buttons
+            for button in buttons:
+                button.click(on_button_click, [button, button_state], [msg, button])
+                
+    
+
 
             # Chain the events
             msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
